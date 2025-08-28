@@ -1,14 +1,8 @@
 # Deptech Employee Management Frontend
 
+## Deskripsi
+
 Aplikasi web untuk pengelolaan data cuti pegawai berbasis Next.js. Sistem ini memungkinkan admin untuk mengelola data admin, pegawai, dan pengajuan cuti.
-
-## Teknologi
-
-- Next.js v15.5.2
-- React v19.1.0
-- TailwindCSS
-- Axios
-- React Hook Form & Zod
 
 ## Fitur
 
@@ -18,9 +12,17 @@ Aplikasi web untuk pengelolaan data cuti pegawai berbasis Next.js. Sistem ini me
 - Pengajuan dan persetujuan cuti
 - UI yang responsive dengan dukungan dark/light mode
 
-## Cara Menjalankan
+## Teknologi yang Digunakan
 
-### Prasyarat
+- Next.js v15.5.2
+- React v19.1.0
+- TailwindCSS
+- Axios
+- React Hook Form & Zod
+
+## Instalasi
+
+### Persyaratan
 
 - Node.js (versi 18+)
 - Backend API (lihat bagian Backend)
