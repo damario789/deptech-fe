@@ -1,4 +1,4 @@
-# Deptech Frontend - Sistem Manajemen Cuti Pegawai
+# Deptech Employee Management Frontend
 
 Aplikasi web untuk pengelolaan data cuti pegawai berbasis Next.js. Sistem ini memungkinkan admin untuk mengelola data admin, pegawai, dan pengajuan cuti.
 
