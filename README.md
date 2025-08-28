@@ -10,7 +10,7 @@ Aplikasi web untuk pengelolaan data cuti pegawai berbasis Next.js. Sistem ini me
 - Manajemen data admin
 - Manajemen data pegawai
 - Pengajuan dan persetujuan cuti
-- UI yang responsive dengan dukungan dark/light mode
+- UI yang responsive
 
 ## Teknologi yang Digunakan
 
