@@ -254,7 +254,7 @@ export default function EmployeesPage() {
                 onClick={() => openDeleteModal(employee)}
                 className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium"
               >
-                Hapus
+                Delete
               </button>
             </div>
           )}

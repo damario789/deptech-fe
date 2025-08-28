@@ -319,22 +319,22 @@ export default function LeavesPage() {
           actions={(leave: Leave) => (
             <div className="flex space-x-2">
               <button
-                onClick={() => openStatusModal(leave)}
-                className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
-              >
-                Ubah Status
-              </button>
-              <button
                 onClick={() => openEditModal(leave)}
                 className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
               >
                 Edit
               </button>
+                <button
+                onClick={() => openStatusModal(leave)}
+                className="text-amber-600 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 font-medium"
+              >
+                Change Status
+              </button>
               <button
                 onClick={() => openDeleteModal(leave)}
                 className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium"
               >
-                Hapus
+                Delete
               </button>
             </div>
           )}

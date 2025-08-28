@@ -24,6 +24,7 @@ Aplikasi web untuk pengelolaan data cuti pegawai berbasis Next.js. Sistem ini me
 
 - Node.js (versi 18+)
 - Backend API (lihat bagian Backend)
+- File `.env` untuk konfigurasi (lihat langkah 3 di bawah)
 
 ### Langkah-langkah
 
@@ -38,12 +39,21 @@ Aplikasi web untuk pengelolaan data cuti pegawai berbasis Next.js. Sistem ini me
    npm install
    ```
 
-3. Jalankan dalam mode development
+3. Buat file .env di root proyek
+   ```bash
+   # API URL - URL of the backend API
+   API_URL="http://localhost:3000"
+
+   # Environment mode
+   NODE_ENV="development"
+   ```
+
+4. Jalankan dalam mode development
    ```bash
    npm run dev
    ```
 
-4. Aplikasi akan berjalan di `http://localhost:3001`
+5. Aplikasi akan berjalan di `http://localhost:3001`
 
 ## Backend
 

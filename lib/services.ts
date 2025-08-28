@@ -42,6 +42,7 @@ export const adminService = {
     email: string;
     birthDate: string;
     gender: string;
+    password: string;
   }>) => {
     const response = await apiClient.patch(`/admin/${id}`, updateData);
     return response.data;

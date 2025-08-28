@@ -20,6 +20,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -32,7 +33,13 @@ export default function AdminPage() {
     password: ''
   });
   
+  const [passwordData, setPasswordData] = useState({
+    newPassword: '',
+    confirmPassword: ''
+  });
+  
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [passwordErrors, setPasswordErrors] = useState<Record<string, string>>({});
 
 
   useEffect(() => {
@@ -64,6 +71,20 @@ export default function AdminPage() {
     // Clear error for this field
     if (errors[name]) {
       setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+  
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setPasswordData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear error for this field
+    if (passwordErrors[name]) {
+      setPasswordErrors(prev => {
         const newErrors = { ...prev };
         delete newErrors[name];
         return newErrors;
@@ -119,8 +140,10 @@ export default function AdminPage() {
     
     try {
       if (selectedAdmin) {
-        const { password, ...updateData } = formData;
-        await adminService.update(selectedAdmin.id, updateData);
+        // Jika form edit, kita tidak perlu mengirim password di sini
+        // Karena password akan diupdate melalui modal password terpisah
+        const { password, ...dataWithoutPassword } = formData;
+        await adminService.update(selectedAdmin.id, dataWithoutPassword);
         toast.success('Admin berhasil diperbarui');
       } else {
         await adminService.register(formData);
@@ -198,6 +221,16 @@ export default function AdminPage() {
     setSelectedAdmin(admin);
     setIsDeleteModalOpen(true);
   };
+  
+  const openPasswordModal = (admin: Admin) => {
+    setSelectedAdmin(admin);
+    setPasswordData({
+      newPassword: '',
+      confirmPassword: ''
+    });
+    setPasswordErrors({});
+    setIsPasswordModalOpen(true);
+  };
 
   const resetForm = () => {
     setFormData({
@@ -209,6 +242,79 @@ export default function AdminPage() {
       password: ''
     });
     setErrors({});
+  };
+  
+  const validatePasswordForm = () => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!passwordData.newPassword) {
+      newErrors.newPassword = 'Password baru harus diisi';
+    } else if (passwordData.newPassword.length < 6) {
+      newErrors.newPassword = 'Password minimal 6 karakter';
+    }
+    
+    if (!passwordData.confirmPassword) {
+      newErrors.confirmPassword = 'Konfirmasi password harus diisi';
+    } else if (passwordData.newPassword !== passwordData.confirmPassword) {
+      newErrors.confirmPassword = 'Konfirmasi password tidak sesuai';
+    }
+    
+    return newErrors;
+  };
+  
+  const handlePasswordSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    
+    // Validate password form
+    const passwordFormErrors = validatePasswordForm();
+    if (Object.keys(passwordFormErrors).length > 0) {
+      setPasswordErrors(passwordFormErrors);
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      if (!selectedAdmin) {
+        throw new Error('Data admin tidak ditemukan');
+      }
+      
+      // Update admin dengan password baru
+      await adminService.update(selectedAdmin.id, { password: passwordData.newPassword });
+      toast.success('Password berhasil diubah');
+      
+      // Reset password form
+      setPasswordData({
+        newPassword: '',
+        confirmPassword: ''
+      });
+      
+      // Close password modal
+      setIsPasswordModalOpen(false);
+    } catch (error: any) {
+      console.error('Error changing password:', error);
+      
+      if (error.response?.data?.details) {
+        // Handle validation errors from the server
+        const serverErrors = error.response.data.details.reduce(
+          (acc: Record<string, string>, curr: string) => {
+            const match = curr.match(/^([a-zA-Z]+) (.+)$/);
+            if (match) {
+              acc[match[1]] = match[2];
+            }
+            return acc;
+          },
+          {}
+        );
+        setPasswordErrors(serverErrors);
+      } else if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error(error.message || 'Gagal mengubah password');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const columns = [
@@ -256,10 +362,16 @@ export default function AdminPage() {
                 Edit
               </button>
               <button
+                onClick={() => openPasswordModal(admin)}
+                className="text-amber-600 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 font-medium"
+              >
+                Change Password
+              </button>
+              <button
                 onClick={() => openDeleteModal(admin)}
                 className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium"
               >
-                Hapus
+                Delete
               </button>
             </div>
           )}
@@ -375,6 +487,45 @@ export default function AdminPage() {
             {isSubmitting ? 'Menghapus...' : 'Hapus'}
           </button>
         </div>
+      </Modal>
+
+      <Modal
+        isOpen={isPasswordModalOpen}
+        onClose={() => setIsPasswordModalOpen(false)}
+        title="Change Password"
+        size="sm"
+      >
+        <Form 
+          onSubmit={handlePasswordSubmit} 
+          isSubmitting={isSubmitting}
+          submitLabel="Simpan"
+        >
+          <p className="text-sm text-gray-600 mb-4">
+            Ubah password untuk admin: <strong>{selectedAdmin?.firstName} {selectedAdmin?.lastName}</strong>
+          </p>
+          
+          <Input
+            id="newPassword"
+            name="newPassword"
+            label="Password Baru"
+            type="password"
+            value={passwordData.newPassword}
+            onChange={handlePasswordChange}
+            error={passwordErrors.newPassword}
+            required
+          />
+          
+          <Input
+            id="confirmPassword"
+            name="confirmPassword"
+            label="Konfirmasi Password"
+            type="password"
+            value={passwordData.confirmPassword}
+            onChange={handlePasswordChange}
+            error={passwordErrors.confirmPassword}
+            required
+          />
+        </Form>
       </Modal>
     </Layout>
   );

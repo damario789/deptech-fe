@@ -9,6 +9,7 @@ import Input from '@/components/Input';
 import DatePicker from '@/components/DatePicker';
 import Select from '@/components/Select';
 import { adminService, Admin } from '@/lib/services';
+import { formatDateForInput } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
 export default function ProfilePage() {
@@ -27,7 +28,6 @@ export default function ProfilePage() {
   });
   
   const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   });
@@ -53,7 +53,7 @@ export default function ProfilePage() {
           firstName: currentAdmin.firstName || '',
           lastName: currentAdmin.lastName || '',
           email: currentAdmin.email || '',
-          birthDate: currentAdmin.birthDate || '',
+          birthDate: currentAdmin.birthDate ? formatDateForInput(currentAdmin.birthDate) : '',
           gender: currentAdmin.gender || '',
         });
       } else {
@@ -125,10 +125,6 @@ export default function ProfilePage() {
 
   const validatePasswordForm = () => {
     const newErrors: Record<string, string> = {};
-    
-    if (!passwordData.currentPassword) {
-      newErrors.currentPassword = 'Password lama harus diisi';
-    }
     
     if (!passwordData.newPassword) {
       newErrors.newPassword = 'Password baru harus diisi';
@@ -215,13 +211,12 @@ export default function ProfilePage() {
         throw new Error('Data admin tidak ditemukan');
       }
       
-      // In a real app, you would call a dedicated password change API
-      // For now, we'll mock it with a simple toast message
+      // Update admin dengan password baru
+      await adminService.update(admin.id, { password: passwordData.newPassword });
       toast.success('Password berhasil diubah');
       
       // Reset password form
       setPasswordData({
-        currentPassword: '',
         newPassword: '',
         confirmPassword: ''
       });
@@ -230,7 +225,25 @@ export default function ProfilePage() {
       setIsPasswordModalOpen(false);
     } catch (error: any) {
       console.error('Error changing password:', error);
-      toast.error(error.message || 'Gagal mengubah password');
+      
+      if (error.response?.data?.details) {
+        // Handle validation errors from the server
+        const serverErrors = error.response.data.details.reduce(
+          (acc: Record<string, string>, curr: string) => {
+            const match = curr.match(/^([a-zA-Z]+) (.+)$/);
+            if (match) {
+              acc[match[1]] = match[2];
+            }
+            return acc;
+          },
+          {}
+        );
+        setPasswordErrors(serverErrors);
+      } else if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error(error.message || 'Gagal mengubah password');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -330,12 +343,12 @@ export default function ProfilePage() {
       {/* Password Modal */}
       {isPasswordModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium">Ubah Password</h3>
+              <h3 className="text-lg font-medium text-black dark:text-white">Ubah Password</h3>
               <button
                 onClick={() => setIsPasswordModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -344,17 +357,6 @@ export default function ProfilePage() {
             </div>
             
             <form onSubmit={handlePasswordSubmit}>
-              <Input
-                id="currentPassword"
-                name="currentPassword"
-                label="Password Saat Ini"
-                type="password"
-                value={passwordData.currentPassword}
-                onChange={handlePasswordChange}
-                error={passwordErrors.currentPassword}
-                required
-              />
-              
               <Input
                 id="newPassword"
                 name="newPassword"
