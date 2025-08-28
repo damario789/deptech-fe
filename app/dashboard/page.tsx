@@ -11,6 +11,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
+    totalAdmins: 0,
     totalEmployees: 0,
     totalLeaves: 0,
     pendingLeaves: 0,
@@ -31,11 +32,13 @@ export default function DashboardPage() {
         setLoading(true);
 
         // Fetch all data in parallel
-        const [employeesResponse, leavesResponse] = await Promise.all([
+        const [adminsResponse, employeesResponse, leavesResponse] = await Promise.all([
+          adminService.getAll(),
           employeeService.getAll(),
           leaveService.getAll(),
         ]);
 
+        const admins = adminsResponse.data || [];
         const employees = employeesResponse.data || [];
         const allLeaves = leavesResponse.data || [];
 
@@ -50,6 +53,7 @@ export default function DashboardPage() {
         ).slice(0, 5);
 
         setStats({
+          totalAdmins: admins.length,
           totalEmployees: employees.length,
           totalLeaves: allLeaves.length,
           pendingLeaves: pendingLeaves.length,
@@ -104,7 +108,14 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+        <Card className="bg-indigo-50 border-indigo-200">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold text-indigo-800">Total Admin</h3>
+            <p className="text-3xl font-bold text-indigo-600 mt-2">{stats.totalAdmins}</p>
+          </div>
+        </Card>
+        
         <Card className="bg-blue-50 border-blue-200">
           <div className="text-center">
             <h3 className="text-lg font-semibold text-blue-800">Total Pegawai</h3>
